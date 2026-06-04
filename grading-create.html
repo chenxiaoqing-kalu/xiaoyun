@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholai · 新建批改任务</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-w: 220px;
+    --bg: #f2f4f2;
+    --surface: #ffffff;
+    --border: #e4e8e4;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent: #2F4F4F;
+    --accent-dark: #03301C;
+    --accent-light: #e8f5ee;
+    --accent-mid: #dce8e2;
+    --sidebar-text: #6b8f7a;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; display: flex;
+  }
+
+  /* 侧边栏 */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--bg);
+    min-height: 100vh; position: fixed; top: 0; left: 0;
+    display: flex; flex-direction: column; padding: 20px 0;
+    animation: fadeIn 0.3s ease both;
+  }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; text-decoration: none; }
+  .logo-mark { width: 26px; height: 26px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 13px; height: 13px; color: #fff; }
+  .logo-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .logo-tag { font-size: 10px; font-weight: 600; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 4px; }
+  .nav-section { padding: 0 10px; }
+  .nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; font-size: 13.5px; color: var(--sidebar-text); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: var(--border); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-mid); color: var(--accent); font-weight: 600; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .nav-item .nav-soon { margin-left: auto; font-size: 9px; font-weight: 600; background: #f3f4f6; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; }
+  .sidebar-footer { margin-top: auto; padding: 14px 10px 4px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; transition: background 0.15s; }
+  .user-row:hover { background: var(--border); }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .user-name { font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .logout-btn { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .logout-btn svg { width: 14px; height: 14px; }
+  .logout-btn:hover { background: var(--accent-mid); color: var(--accent); }
+
+  /* 主内容 */
+  .content { margin-left: var(--sidebar-w); flex: 1; padding: 16px; }
+  .content-card { background: var(--surface); border-radius: 14px; padding: 28px 36px; min-height: calc(100vh - 32px); animation: fadeUp 0.35s ease both; animation-delay: 0.05s; }
+
+  /* 页头 */
+  .page-header { margin-bottom: 28px; animation: fadeUp 0.3s ease both; animation-delay: 0.1s; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb span { font-size: 11px; }
+  .page-header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .page-header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* 表单布局 */
+  .form-body { display: grid; grid-template-columns: 1fr 1.4fr; gap: 28px; max-width: 900px; }
+
+  /* 分区 */
+  .form-section { animation: fadeUp 0.3s ease both; }
+  .form-section:nth-child(1) { animation-delay: 0.12s; }
+  .form-section:nth-child(2) { animation-delay: 0.16s; }
+  .section-title {
+    font-size: 13px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-num.gray { background: var(--bg); color: var(--text-muted); border: 1.5px solid var(--border); }
+
+  /* 字段 */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+  .field input, .field select {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 13.5px; color: var(--text-primary);
+    background: #fff;
+    outline: none; transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,79,79,0.08); }
+  .field input::placeholder { color: var(--text-muted); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* 上传区 */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 12px;
+  }
+  .upload-zone:hover { border-color: var(--accent); background: #f7faf8; }
+  .upload-zone.has-file { border-color: #b8ccc5; background: var(--accent-light); border-style: solid; }
+  .upload-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--accent-mid);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+    color: var(--accent);
+  }
+  .upload-icon svg { width: 17px; height: 17px; }
+  .upload-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+  .upload-hint { font-size: 11.5px; color: var(--text-muted); }
+  .upload-hint em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+  /* 已上传文件 chip */
+  .file-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .file-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 8px;
+    background: var(--accent-light);
+    border: 1px solid #b8ccc5;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 500; color: #2d6a4f;
+  }
+  .file-chip svg { width: 12px; height: 12px; }
+  .file-chip-remove {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(45,106,79,0.15);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none; color: #2d6a4f;
+    flex-shrink: 0;
+  }
+  .file-chip-remove svg { width: 8px; height: 8px; }
+
+  /* Step 1 提示 */
+  .step1-tip {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 12.5px; color: #92400e; line-height: 1.6;
+    margin-top: 4px;
+  }
+  .step1-tip strong { font-weight: 600; }
+
+  /* 底部操作 */
+  .form-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; margin-top: 36px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.3s ease both; animation-delay: 0.2s;
+  }
+  .btn-ghost {
+    padding: 9px 20px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--text-secondary); background: transparent;
+    border: 1.5px solid var(--border);
+    cursor: pointer; transition: all 0.15s; text-decoration: none;
+    display: inline-flex; align-items: center;
+  }
+  .btn-ghost:hover { background: var(--bg); border-color: #c8cec8; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 600;
+    color: #fff; background: var(--accent); border: none;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(47,79,79,0.25);
+  }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(47,79,79,0.3); }
+  .btn-primary svg { width: 14px; height: 14px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="sidebar-logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-name">Scholai</span>
+    <span class="logo-tag">Beta</span>
+  </a>
+  <div class="nav-section">
+    <div class="nav-label">功能</div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      功能总览
+    </a>
+    <a class="nav-item active" href="grading-list.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      智能批改
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      题库管理
+      <span class="nav-soon">即将上线</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      学情分析
+      <span class="nav-soon">即将上线</span>
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">刘</div>
+      <span class="user-name">刘老师</span>
+      <button class="logout-btn" title="退出">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<main class="content">
+  <div class="content-card">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">首页</a>
+        <span>›</span>
+        <a href="grading-list.html">智能批改</a>
+        <span>›</span>
+        <span style="color:var(--text-primary)">新建批改任务</span>
+      </div>
+      <h1>新建批改任务</h1>
+      <p>填写作业信息并上传题目与答案文件，AI 将自动整理为标准答案供后续批改使用</p>
+    </div>
+
+    <div class="form-body">
+
+      <!-- 左：基本信息 -->
+      <div class="form-section">
+        <div class="section-title">
+          <div class="section-num">1</div>
+          基本信息
+        </div>
+        <div class="field">
+          <label>作业名称</label>
+          <input type="text" placeholder="例：2604-W14 作业" />
+        </div>
+      </div>
+
+      <!-- 右：上传文件 -->
+      <div class="form-section">
+        <div class="section-title">
+          <div class="section-num">2</div>
+          上传题目与答案
+        </div>
+
+        <!-- 合并上传区 -->
+        <div style="margin-bottom:12px">
+          <div class="upload-zone" id="allZone" onclick="fakeUpload()">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="upload-title">点击上传题目与答案文件</div>
+            <div class="upload-hint">支持 <em>PDF</em>、图片（JPG / PNG），可多选</div>
+          </div>
+          <div class="file-chips" id="allChips"></div>
+        </div>
+
+        <div class="step1-tip">
+          <strong>上传后 AI 将自动：</strong>逐题转录题目内容，将答案按题号对应填入，数学公式转为 LaTeX 格式，整理为结构化 Markdown 供批改使用
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-footer">
+      <a class="btn-ghost" href="grading-list.html">取消</a>
+      <button class="btn-primary" id="submitBtn" onclick="location.href='grading-detail.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        创建任务并开始整理
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const allFiles = ['2604-W14作业合集.pdf', '答案1.pdf', '答案补充.png'];
+
+  function fakeUpload() {
+    allFiles.push('文件' + (allFiles.length + 1) + '.pdf');
+    renderChips();
+  }
+
+  function removeFile(idx) {
+    allFiles.splice(idx, 1);
+    if (allFiles.length === 0) document.getElementById('allZone').classList.remove('has-file');
+    renderChips();
+  }
+
+  function renderChips() {
+    const el = document.getElementById('allChips');
+    el.innerHTML = allFiles.map((f, i) => `
+      <div class="file-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        ${f}
+        <button class="file-chip-remove" onclick="removeFile(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    `).join('');
+    if (allFiles.length > 0) document.getElementById('allZone').classList.add('has-file');
+  }
+
+  renderChips();
+</script>
+
+</body>
+</html>

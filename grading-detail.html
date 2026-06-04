@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholai · 2604-W13 作业批改</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-w: 220px;
+    --bg: #f2f4f2;
+    --surface: #ffffff;
+    --border: #e4e8e4;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent: #2F4F4F;
+    --accent-dark: #03301C;
+    --accent-light: #e8f5ee;
+    --accent-mid: #dce8e2;
+    --sidebar-text: #6b8f7a;
+    --danger: #dc2626;
+    --danger-light: #fef2f2;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; display: flex;
+  }
+
+  /* 侧边栏 */
+  .sidebar { width: var(--sidebar-w); background: var(--bg); min-height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 20px 0; animation: fadeIn 0.3s ease both; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; text-decoration: none; }
+  .logo-mark { width: 26px; height: 26px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 13px; height: 13px; color: #fff; }
+  .logo-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .logo-tag { font-size: 10px; font-weight: 600; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 4px; }
+  .nav-section { padding: 0 10px; }
+  .nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; font-size: 13.5px; color: var(--sidebar-text); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: var(--border); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-mid); color: var(--accent); font-weight: 600; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .nav-item .nav-soon { margin-left: auto; font-size: 9px; font-weight: 600; background: #f3f4f6; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; }
+  .sidebar-footer { margin-top: auto; padding: 14px 10px 4px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; transition: background 0.15s; }
+  .user-row:hover { background: var(--border); }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .user-name { font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .logout-btn { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .logout-btn svg { width: 14px; height: 14px; }
+  .logout-btn:hover { background: var(--accent-mid); color: var(--accent); }
+
+  /* 主内容 */
+  .content { margin-left: var(--sidebar-w); flex: 1; padding: 16px; transition: margin-right 0.3s; }
+  .content.panel-open { margin-right: 400px; }
+  .content-card { background: var(--surface); border-radius: 14px; padding: 28px 32px; min-height: calc(100vh - 32px); animation: fadeUp 0.35s ease both; animation-delay: 0.05s; }
+
+  /* 页头 */
+  .page-header { margin-bottom: 20px; animation: fadeUp 0.3s ease both; animation-delay: 0.1s; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb span { font-size: 11px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .page-header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .status-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .status-tag .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .status-done { background: var(--accent-light); color: #2d6a4f; }
+  .status-done .dot { background: #2d6a4f; }
+  .status-processing { background: #fef3e8; color: #c2670a; }
+  .status-processing .dot { background: #c2670a; animation: pulse 1.5s infinite; }
+  .status-pending { background: #f3f4f6; color: var(--text-muted); }
+  .status-pending .dot { background: var(--text-muted); }
+
+  .file-link { font-size: 12px; color: var(--accent); cursor: pointer; padding: 2px 8px; background: var(--accent-light); border: 1px solid #b8ccc5; border-radius: 5px; transition: all 0.15s; white-space: nowrap; }
+  .file-link:hover { background: var(--accent); color: #fff; }
+  .result-modal { background: #fff; border-radius: 14px; width: 620px; max-width: 94vw; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.15); transform: translateY(10px); transition: transform 0.2s; }
+  .modal-overlay.show .result-modal { transform: translateY(0); }
+  .result-modal-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .result-modal-header h3 { font-size: 15px; font-weight: 700; }
+  .result-modal-header p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .result-modal-body { overflow-y: auto; flex: 1; padding: 20px 24px; font-size: 13px; line-height: 1.8; color: var(--text-primary); }
+  .result-modal-body h4 { font-size: 13px; font-weight: 700; color: var(--accent); margin: 16px 0 6px; }
+  .result-modal-body h4:first-child { margin-top: 0; }
+  .result-modal-body p { margin-bottom: 4px; }
+  .result-modal-body .answer { color: #2d6a4f; font-weight: 600; }
+  .btn-view-result { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--accent); background: var(--accent-mid); border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn-view-result:hover { background: var(--accent); color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 8px rgba(47,79,79,0.25); }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-primary svg { width: 13px; height: 13px; }
+
+  /* 任务信息栏 */
+  .task-info-bar {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.3s ease both; animation-delay: 0.12s;
+  }
+  .info-item { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .info-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-val { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .info-divider { width: 1px; height: 28px; background: var(--border); }
+
+  /* Step 1 折叠栏 */
+  .step1-bar {
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: fadeUp 0.3s ease both; animation-delay: 0.14s;
+  }
+  .step1-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; cursor: pointer;
+    background: #f8faf8;
+    transition: background 0.15s;
+  }
+  .step1-header:hover { background: #f0f5f1; }
+  .step1-header-left { display: flex; align-items: center; gap: 10px; }
+  .step1-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--accent); color: #fff; letter-spacing: 0.3px; }
+  .step1-title { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .step1-sub { font-size: 12px; color: var(--text-muted); }
+  .step1-toggle { width: 22px; height: 22px; border-radius: 5px; background: var(--accent-mid); display: flex; align-items: center; justify-content: center; color: var(--accent); transition: transform 0.2s; }
+  .step1-toggle svg { width: 12px; height: 12px; }
+  .step1-toggle.open { transform: rotate(180deg); }
+  .step1-body { padding: 16px 18px; border-top: 1px solid var(--border); display: none; }
+  .step1-body.open { display: block; }
+  .step1-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+  .topic-chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--accent-light); color: #2d6a4f; border: 1px solid #b8d4c4; font-weight: 500; }
+
+  /* 学生区 */
+  .students-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+    animation: fadeUp 0.3s ease both; animation-delay: 0.16s;
+  }
+  .students-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .count-badge { font-size: 12px; background: var(--accent-light); color: var(--accent); padding: 2px 9px; border-radius: 20px; font-weight: 600; }
+
+  /* 学生表格 */
+  .table-wrap { animation: fadeUp 0.3s ease both; animation-delay: 0.18s; }
+  .table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.2fr 1.4fr;
+    padding: 8px 14px;
+    font-size: 11px; font-weight: 600;
+    color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.2fr 1.4fr;
+    align-items: center;
+    padding: 13px 14px;
+    border-bottom: 1px solid #eef0ee;
+    transition: background 0.1s;
+    border-radius: 8px;
+    animation: fadeUp 0.3s ease both;
+    cursor: pointer;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: #eef4f0; }
+  .table-row.selected { background: var(--accent-light); }
+
+  .student-name-cell { display: flex; align-items: center; gap: 10px; }
+  .student-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-mid); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .student-name { font-size: 13.5px; font-weight: 600; }
+
+  .col-center { display: flex; align-items: center; justify-content: center; }
+  .col-val { font-size: 13px; color: var(--text-secondary); }
+
+  /* 分数 */
+  .score-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 700; }
+  .score-badge.good { color: #2d6a4f; }
+  .score-badge.mid { color: #c2670a; }
+
+  /* 进度 */
+  .progress-wrap { display: flex; align-items: center; gap: 8px; }
+  .progress-bar { flex: 1; height: 5px; background: #e9ece9; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .progress-text { font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+
+  /* 操作按钮 */
+  .row-actions { display: flex; gap: 4px; justify-content: center; }
+  .icon-btn { width: 30px; height: 30px; border-radius: 7px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; text-decoration: none; }
+  .icon-btn svg { width: 14px; height: 14px; }
+  .icon-btn:hover { background: var(--accent-mid); color: var(--accent); }
+  .icon-btn.danger:hover { background: var(--danger-light); color: var(--danger); }
+  .btn-upload { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-mid); border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-upload:hover { background: var(--accent); color: #fff; }
+  .btn-upload svg { width: 12px; height: 12px; }
+
+  /* 上传区浮层（添加学生作业） */
+  .upload-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .photo-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; font-size: 11.5px; color: var(--text-secondary); text-decoration: none; cursor: pointer; transition: all 0.15s; }
+  .photo-chip:hover { background: var(--accent-mid); border-color: #b8ccc5; color: var(--accent); }
+  .photo-chip svg { width: 11px; height: 11px; }
+
+  /* ── 右侧滑出面板 ── */
+  .side-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 400px; height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.06);
+  }
+  .side-panel.open { transform: translateX(0); }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-header-left { display: flex; align-items: center; gap: 10px; }
+  .panel-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-mid); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .panel-name { font-size: 15px; font-weight: 700; }
+  .panel-sub { font-size: 11.5px; color: var(--text-muted); }
+  .panel-close { width: 28px; height: 28px; border-radius: 7px; border: none; background: var(--bg); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .panel-close:hover { background: var(--border); color: var(--text-primary); }
+  .panel-close svg { width: 13px; height: 13px; }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+
+  /* 面板-得分概览 */
+  .panel-score-row {
+    display: flex; gap: 10px; margin-bottom: 18px;
+  }
+  .panel-score-card {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; text-align: center;
+  }
+  .panel-score-val { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .panel-score-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .panel-score-card.orange .panel-score-val { color: #c2670a; }
+  .panel-score-card.gray .panel-score-val { color: var(--text-muted); }
+
+  /* 面板-section */
+  .panel-section { margin-bottom: 20px; }
+  .panel-section-title {
+    font-size: 11.5px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .panel-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* 逐题表格 */
+  .result-table { width: 100%; border-collapse: collapse; }
+  .result-table th {
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    padding: 6px 8px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.3px;
+  }
+  .result-table td {
+    font-size: 12.5px; padding: 8px 8px;
+    border-bottom: 1px solid #f0f2f0;
+    color: var(--text-primary);
+  }
+  .result-table tr:last-child td { border-bottom: none; }
+  .result-table tr:hover td { background: #f7faf8; }
+  .r-correct { color: #2d6a4f; font-weight: 700; }
+  .r-wrong { color: var(--danger); font-weight: 700; }
+  .r-na { color: var(--text-muted); }
+  .r-doubt { color: #c2670a; font-weight: 600; }
+
+  /* 总结 */
+  .summary-block { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 14px 16px; margin-bottom: 10px; }
+  .summary-block h4 { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
+  .summary-block p { font-size: 12.5px; line-height: 1.7; color: var(--text-primary); }
+  .knowledge-list { list-style: none; }
+  .knowledge-list li { font-size: 12.5px; line-height: 1.7; color: var(--text-primary); padding-left: 14px; position: relative; }
+  .knowledge-list li::before { content: '·'; position: absolute; left: 4px; color: var(--accent); font-weight: 700; }
+  .knowledge-list li.weak::before { color: #c2670a; }
+
+  /* 建议 */
+  .suggestion-list { list-style: none; counter-reset: sg; }
+  .suggestion-list li {
+    font-size: 12.5px; line-height: 1.7; color: var(--text-primary);
+    padding: 8px 10px 8px 32px;
+    border-radius: 7px;
+    background: var(--bg);
+    margin-bottom: 6px;
+    position: relative;
+    counter-increment: sg;
+    border: 1px solid var(--border);
+  }
+  .suggestion-list li::before {
+    content: counter(sg);
+    position: absolute; left: 10px; top: 9px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent-mid); color: var(--accent);
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* 添加学生作业弹框 */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal { background: #fff; border-radius: 14px; padding: 26px 28px; width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); transform: translateY(8px); transition: transform 0.2s; }
+  .modal-overlay.show .modal { transform: translateY(0); }
+  .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .modal p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 18px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+  .modal-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13.5px; color: var(--text-primary); outline: none; transition: border-color 0.15s; font-family: inherit; }
+  .modal-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,79,79,0.08); }
+  .upload-zone-sm { border: 2px dashed var(--border); border-radius: 9px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .upload-zone-sm:hover { border-color: var(--accent); background: #f7faf8; }
+  .upload-zone-sm p { font-size: 12.5px; color: var(--text-muted); }
+  .upload-zone-sm p em { font-style: normal; color: var(--accent); font-weight: 600; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn-ghost { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-secondary); background: transparent; border: 1.5px solid var(--border); cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-sm-primary { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-sm-primary:hover { background: var(--accent-dark); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="sidebar-logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-name">Scholai</span>
+    <span class="logo-tag">Beta</span>
+  </a>
+  <div class="nav-section">
+    <div class="nav-label">功能</div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      功能总览
+    </a>
+    <a class="nav-item active" href="grading-list.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      智能批改
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      题库管理
+      <span class="nav-soon">即将上线</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      学情分析
+      <span class="nav-soon">即将上线</span>
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">刘</div>
+      <span class="user-name">刘老师</span>
+      <button class="logout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<main class="content" id="mainContent">
+  <div class="content-card">
+
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">首页</a>
+        <span>›</span>
+        <a href="grading-list.html">智能批改</a>
+        <span>›</span>
+        <span style="color:var(--text-primary)">2604-W13 作业</span>
+      </div>
+      <div class="header-row">
+        <div class="header-left">
+          <h1>2604-W13 作业</h1>
+        </div>
+        <button class="btn-primary" onclick="openAddStudent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          上传学生作业
+        </button>
+      </div>
+    </div>
+
+
+    <!-- 任务信息 -->
+    <div class="task-info-bar">
+      <div class="info-item">
+        <span class="info-lbl">题目数</span>
+        <span class="info-val">10</span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-item">
+        <span class="info-lbl">批改数</span>
+        <span class="info-val">2</span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-item">
+        <span class="info-lbl">创建时间</span>
+        <span class="info-val">06-01</span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-item">
+        <span class="info-lbl">来源文件</span>
+        <span class="info-val" style="display:flex;gap:6px;flex-wrap:wrap">
+          <!-- 开发注意：href 替换为对应源文件的实际 URL，target="_blank" 新标签页打开原始文件 -->
+          <a class="file-link" href="javascript:void(0)" target="_blank">📄 2604-W13作业合集.pdf</a>
+          <a class="file-link" href="javascript:void(0)" target="_blank">📄 答案1.pdf</a>
+          <a class="file-link" href="javascript:void(0)" target="_blank">🖼 答案补充.png</a>
+        </span>
+      </div>
+      <div style="margin-left:auto;flex-shrink:0">
+        <!-- 开发注意：href 替换为整理结果 MD 文件的实际 URL，target="_blank" 新标签页打开 -->
+        <a class="btn-view-result" href="javascript:void(0)" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          查看整理结果
+        </a>
+      </div>
+    </div>
+
+    <!-- 学生列表 -->
+    <div class="students-header">
+      <div class="students-title">
+        批改列表
+        <span class="count-badge">5</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div>学生</div>
+        <div style="text-align:center">上传照片</div>
+        <div style="text-align:center">批改状态</div>
+        <div style="text-align:center">得分</div>
+        <div style="text-align:center">批改时间</div>
+        <div style="text-align:center">操作</div>
+      </div>
+
+      <!-- 学生1：已完成 -->
+      <div class="table-row" id="row-0" style="animation-delay:0.2s" onclick="openPanel(0)">
+        <div class="student-name-cell">
+          <div class="student-avatar">张</div>
+          <span class="student-name">张小明</span>
+        </div>
+        <div class="col-center">
+          <!-- 开发注意：href 替换为学生作业照片的实际 URL -->
+          <a class="photo-chip" href="javascript:void(0)" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>2 张</a>
+        </div>
+        <div class="col-center">
+          <span class="status-tag status-done"><span class="dot"></span>已完成</span>
+        </div>
+        <div class="col-center">
+          <span class="score-badge good">9 / 10</span>
+        </div>
+        <div class="col-center"><span class="col-val">06-03 14:22</span></div>
+        <div class="row-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="openPanel(0)" title="查看报告">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="icon-btn danger" title="删除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 学生2：已完成 -->
+      <div class="table-row" id="row-1" style="animation-delay:0.24s" onclick="openPanel(1)">
+        <div class="student-name-cell">
+          <div class="student-avatar" style="background:#eef0fe;color:#4a58e0">李</div>
+          <span class="student-name">李小红</span>
+        </div>
+        <div class="col-center">
+          <!-- 开发注意：href 替换为学生作业照片的实际 URL -->
+          <a class="photo-chip" href="javascript:void(0)" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>2 张</a>
+        </div>
+        <div class="col-center">
+          <span class="status-tag status-done"><span class="dot"></span>已完成</span>
+        </div>
+        <div class="col-center">
+          <span class="score-badge good">8 / 10</span>
+        </div>
+        <div class="col-center"><span class="col-val">06-03 15:10</span></div>
+        <div class="row-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="openPanel(1)" title="查看报告">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="icon-btn danger" title="删除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 学生3：批改中 -->
+      <div class="table-row" style="animation-delay:0.28s">
+        <div class="student-name-cell">
+          <div class="student-avatar" style="background:#fef3e8;color:#c2670a">王</div>
+          <span class="student-name">王小强</span>
+        </div>
+        <div class="col-center">
+          <!-- 开发注意：href 替换为学生作业照片的实际 URL -->
+          <a class="photo-chip" href="javascript:void(0)" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>1 张</a>
+        </div>
+        <div class="col-center">
+          <span class="status-tag status-processing"><span class="dot"></span>批改中</span>
+        </div>
+        <div class="col-center"><span class="col-val" style="color:var(--text-muted)">—</span></div>
+        <div class="col-center"><span class="col-val" style="color:var(--text-muted)">—</span></div>
+        <div class="row-actions">
+          <button class="icon-btn" title="刷新状态">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+</main>
+
+<!-- 右侧滑出面板 -->
+<div class="side-panel" id="sidePanel">
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <div class="panel-avatar" id="panelAvatar">张</div>
+      <div>
+        <div class="panel-name" id="panelName">张小明</div>
+        <div class="panel-sub">简要批改报告 · 2604-W13</div>
+      </div>
+    </div>
+    <button class="panel-close" onclick="closePanel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+
+    <!-- 得分概览 -->
+    <div class="panel-score-row">
+      <div class="panel-score-card">
+        <div class="panel-score-val" id="panelScoreMain">9/10</div>
+        <div class="panel-score-lbl">答案正确</div>
+      </div>
+      <div class="panel-score-card orange">
+        <div class="panel-score-val" id="panelScoreWrong">0</div>
+        <div class="panel-score-lbl">答案错误</div>
+      </div>
+      <div class="panel-score-card gray">
+        <div class="panel-score-val" id="panelScoreNA">1</div>
+        <div class="panel-score-lbl">未作答</div>
+      </div>
+    </div>
+
+    <!-- 逐题结论 -->
+    <div class="panel-section">
+      <div class="panel-section-title">逐题结论</div>
+      <table class="result-table" id="panelResultTable">
+        <thead>
+          <tr>
+            <th>题号</th>
+            <th>答案</th>
+            <th>过程</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 知识点掌握 -->
+    <div class="panel-section">
+      <div class="panel-section-title">知识点掌握</div>
+      <div class="summary-block">
+        <h4>掌握较好</h4>
+        <ul class="knowledge-list" id="panelKnowledgeGood"></ul>
+      </div>
+      <div class="summary-block">
+        <h4>需要加强</h4>
+        <ul class="knowledge-list" id="panelKnowledgeWeak"></ul>
+      </div>
+    </div>
+
+    <!-- 建议 -->
+    <div class="panel-section">
+      <div class="panel-section-title">学习建议</div>
+      <ol class="suggestion-list" id="panelSuggestions"></ol>
+    </div>
+
+  </div>
+</div>
+
+<!-- 添加学生作业弹框 -->
+<div class="modal-overlay" id="addStudentModal">
+  <div class="modal">
+    <h3>上传学生作业</h3>
+    <p>上传后 AI 将自动识别手写内容并批改，生成完整报告</p>
+    <div class="modal-field">
+      <label>学生姓名</label>
+      <input type="text" placeholder="输入学生姓名" />
+    </div>
+    <div class="modal-field">
+      <label>作业照片</label>
+      <div class="upload-zone-sm">
+        <p>点击上传作业照片，支持 <em>JPG / PNG</em>，可多选</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeAddStudent()">取消</button>
+      <button class="btn-sm-primary" onclick="closeAddStudent()">上传并开始批改</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STUDENTS = [
+    {
+      name: '张小明', avatar: '张', avatarBg: '#dce8e2', avatarColor: '#2F4F4F',
+      score: '9/10', wrong: 0, na: 1,
+      results: [
+        { q: '第二页·第1题', ans: '✓', proc: '✓', note: '' },
+        { q: '第二页·第2题（过程题）', ans: '✓', proc: '✓', note: '' },
+        { q: '第二页·第2题（填空）', ans: '—', proc: '—', note: '未作答' },
+        { q: '第二页·第3题', ans: '✓', proc: '✓', note: '' },
+        { q: '题目17（1）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目17（2）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目14（1）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目14（2）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目18', ans: '✓', proc: '✓', note: '' },
+        { q: '第三页·末题', ans: '✓', proc: '✓', note: '' },
+      ],
+      knowledgeGood: ['方程正整数解的求法（第二页第1-3题）','方程组公共解的求法（题目17、14）','含参方程组参数求值（题目17(2)、14(2)）','换元法解方程组（第三页末题）','甲乙看错数据应用题（题目18）'],
+      knowledgeWeak: ['答卷完整性：重复出现的同类题目未作答'],
+      suggestions: ['正整数解和含参方程组是本次核心考查点，掌握良好，可适当增加变式题练习','重复出现的同类题目建议每道都作答，避免漏题失分','原件有涂改，建议养成"写完一步检查一步"的习惯'],
+    },
+    {
+      name: '李小红', avatar: '李', avatarBg: '#eef0fe', avatarColor: '#4a58e0',
+      score: '8/10', wrong: 1, na: 1,
+      results: [
+        { q: '第二页·第1题', ans: '✓', proc: '✓', note: '' },
+        { q: '第二页·第2题（过程题）', ans: '✓', proc: '✓', note: '' },
+        { q: '第二页·第2题（填空）', ans: '—', proc: '—', note: '未作答' },
+        { q: '第二页·第3题', ans: '✗', proc: '✗', note: '枚举不完整' },
+        { q: '题目17（1）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目17（2）', ans: '✓', proc: '△', note: '步骤存疑' },
+        { q: '题目14（1）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目14（2）', ans: '✓', proc: '✓', note: '' },
+        { q: '题目18', ans: '✓', proc: '✓', note: '' },
+        { q: '第三页·末题', ans: '✓', proc: '✓', note: '' },
+      ],
+      knowledgeGood: ['方程正整数解的基本方法（第二页第1、2题）','方程组公共解（题目17(1)、14均正确）','含参方程组参数求值（题目14(2)正确）','甲乙数据应用题（题目18正确）'],
+      knowledgeWeak: ['正整数解枚举完整性（第二页第3题漏解）','过程书写规范性（题目17(2)存疑）'],
+      suggestions: ['第二页第3题枚举时需系统列举所有情况，建议练习整除条件的穷举方法','含参方程组过程需逐步清晰呈现，避免跳步','答卷完整性同样需要注意'],
+    }
+  ];
+
+  let panelOpen = false;
+
+  function openPanel(idx) {
+    const s = STUDENTS[idx];
+    // 更新头部
+    document.getElementById('panelAvatar').textContent = s.avatar;
+    document.getElementById('panelAvatar').style.background = s.avatarBg;
+    document.getElementById('panelAvatar').style.color = s.avatarColor;
+    document.getElementById('panelName').textContent = s.name;
+    document.getElementById('panelScoreMain').textContent = s.score;
+    document.getElementById('panelScoreWrong').textContent = s.wrong;
+    document.getElementById('panelScoreNA').textContent = s.na;
+
+    // 逐题表格
+    const tbody = document.querySelector('#panelResultTable tbody');
+    tbody.innerHTML = s.results.map(r => `
+      <tr>
+        <td>${r.q}</td>
+        <td class="${r.ans === '✓' ? 'r-correct' : r.ans === '✗' ? 'r-wrong' : r.ans === '△' ? 'r-doubt' : 'r-na'}">${r.ans}</td>
+        <td class="${r.proc === '✓' ? 'r-correct' : r.proc === '✗' ? 'r-wrong' : r.proc === '△' ? 'r-doubt' : 'r-na'}">${r.proc}</td>
+        <td style="font-size:11.5px;color:var(--text-muted)">${r.note}</td>
+      </tr>
+    `).join('');
+
+    // 知识点
+    document.getElementById('panelKnowledgeGood').innerHTML = s.knowledgeGood.map(k => `<li>${k}</li>`).join('');
+    document.getElementById('panelKnowledgeWeak').innerHTML = s.knowledgeWeak.map(k => `<li class="weak">${k}</li>`).join('');
+
+    // 建议
+    document.getElementById('panelSuggestions').innerHTML = s.suggestions.map(sg => `<li>${sg}</li>`).join('');
+
+    // 高亮行
+    document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+    document.getElementById('row-' + idx)?.classList.add('selected');
+
+    // 打开面板
+    document.getElementById('sidePanel').classList.add('open');
+    document.getElementById('mainContent').classList.add('panel-open');
+    panelOpen = true;
+  }
+
+  function closePanel() {
+    document.getElementById('sidePanel').classList.remove('open');
+    document.getElementById('mainContent').classList.remove('panel-open');
+    document.querySelectorAll('.table-row').forEach(r => r.classList.remove('selected'));
+    panelOpen = false;
+  }
+
+  function toggleStep1() {
+    document.getElementById('step1Body').classList.toggle('open');
+    document.getElementById('step1Toggle').classList.toggle('open');
+  }
+
+  function openAddStudent() {
+    document.getElementById('addStudentModal').classList.add('show');
+  }
+  function closeAddStudent() {
+    document.getElementById('addStudentModal').classList.remove('show');
+  }
+  document.getElementById('addStudentModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddStudent();
+  });
+</script>
+
+</body>
+</html>
