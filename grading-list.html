@@ -202,6 +202,19 @@
   .icon-btn:hover { background: var(--accent-mid); color: var(--accent); }
   .icon-btn.danger:hover { background: var(--danger-light); color: var(--danger); }
 
+  /* 确认删除 modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal { background: #fff; border-radius: 14px; padding: 26px 28px; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); transform: translateY(8px); transition: transform 0.2s; }
+  .modal-overlay.show .modal { transform: translateY(0); }
+  .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-ghost { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-secondary); background: transparent; border: 1.5px solid var(--border); cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-danger { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; background: var(--danger); border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-danger:hover { background: #b91c1c; }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -324,7 +337,7 @@
           <a class="icon-btn" href="grading-create.html" title="编辑任务">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </a>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -352,7 +365,7 @@
           <a class="icon-btn" href="grading-create.html" title="编辑任务">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </a>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -380,7 +393,7 @@
           <a class="icon-btn" href="grading-create.html" title="编辑任务">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </a>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -408,7 +421,7 @@
           <a class="icon-btn" href="grading-create.html" title="编辑任务">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </a>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -418,6 +431,43 @@
   </div>
 </main>
 
+
+<!-- 确认删除 modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>确认删除</h3>
+    <p id="deleteModalDesc">删除后数据不可恢复，确认继续？</p>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeDeleteModal()">取消</button>
+      <button class="btn-danger" id="deleteConfirmBtn">删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let pendingDeleteRow = null;
+
+  function confirmDelete(btn) {
+    const row = btn.closest('.table-row');
+    const name = row.querySelector('.task-name-text').textContent.trim();
+    pendingDeleteRow = row;
+    document.getElementById('deleteModalDesc').textContent = `删除「${name}」后数据不可恢复，确认继续？`;
+    document.getElementById('deleteModal').classList.add('show');
+    document.getElementById('deleteConfirmBtn').onclick = function() {
+      pendingDeleteRow.remove();
+      closeDeleteModal();
+    };
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    pendingDeleteRow = null;
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
 
 </body>
 </html>

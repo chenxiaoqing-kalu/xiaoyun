@@ -306,6 +306,9 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  .btn-danger { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #fff; background: var(--danger); border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-danger:hover { background: #b91c1c; }
+
   /* 添加学生作业弹框 */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .modal-overlay.show { opacity: 1; pointer-events: all; }
@@ -494,7 +497,7 @@
           <button class="icon-btn" title="重新批改">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
           </button>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -524,7 +527,7 @@
           <button class="icon-btn" title="重新批改">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
           </button>
-          <button class="icon-btn danger" title="删除">
+          <button class="icon-btn danger" title="删除" onclick="confirmDelete(this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
@@ -567,9 +570,20 @@
         <div class="panel-sub">简要批改报告 · 2604-W13</div>
       </div>
     </div>
-    <button class="panel-close" onclick="closePanel()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <!-- 开发注意：href 替换为该学生完整批改结果 MD 文件的实际 URL -->
+      <a class="btn-view-result" href="javascript:void(0)" target="_blank" title="查看详细批改细节">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        详细批改
+      </a>
+      <button class="btn-view-result" title="重新生成报告">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        重新生成
+      </button>
+      <button class="panel-close" onclick="closePanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
   </div>
   <div class="panel-body">
 
@@ -624,6 +638,18 @@
       <ol class="suggestion-list" id="panelSuggestions"></ol>
     </div>
 
+  </div>
+</div>
+
+<!-- 确认删除 modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>确认删除</h3>
+    <p id="deleteModalDesc"></p>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeDeleteModal()">取消</button>
+      <button class="btn-danger" id="deleteConfirmBtn">删除</button>
+    </div>
   </div>
 </div>
 
@@ -752,6 +778,29 @@
   }
   document.getElementById('addStudentModal').addEventListener('click', function(e) {
     if (e.target === this) closeAddStudent();
+  });
+
+  let pendingDeleteRow = null;
+
+  function confirmDelete(btn) {
+    const row = btn.closest('.table-row');
+    const name = row.querySelector('.student-name')?.textContent.trim();
+    pendingDeleteRow = row;
+    document.getElementById('deleteModalDesc').textContent = `删除「${name}」的批改记录后数据不可恢复，确认继续？`;
+    document.getElementById('deleteModal').classList.add('show');
+    document.getElementById('deleteConfirmBtn').onclick = function() {
+      pendingDeleteRow.remove();
+      closeDeleteModal();
+    };
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    pendingDeleteRow = null;
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
   });
 
   function startTitleEdit() {
