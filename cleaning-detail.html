@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholai · 2604-W13 学生作业</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sidebar-w: 220px; --bg: #f2f4f2; --surface: #ffffff;
+    --border: #e4e8e4; --text-primary: #111827;
+    --text-secondary: #6b7280; --text-muted: #9ca3af;
+    --accent: #2F4F4F; --accent-dark: #03301C;
+    --accent-light: #e8f5ee; --accent-mid: #dce8e2;
+    --sidebar-text: #6b8f7a;
+    --danger: #dc2626; --danger-light: #fef2f2;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--bg); min-height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 20px 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; text-decoration: none; }
+  .logo-mark { width: 26px; height: 26px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 13px; height: 13px; color: #fff; }
+  .logo-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .logo-tag { font-size: 10px; font-weight: 600; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 4px; }
+  .nav-section { padding: 0 10px; }
+  .nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; font-size: 13.5px; color: var(--sidebar-text); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: var(--border); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-mid); color: var(--accent); font-weight: 600; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .nav-item .nav-soon { margin-left: auto; font-size: 9px; font-weight: 600; background: #f3f4f6; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; }
+  .sidebar-footer { margin-top: auto; padding: 14px 10px 4px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; transition: background 0.15s; }
+  .user-row:hover { background: var(--border); }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .user-name { font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .logout-btn { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .logout-btn svg { width: 14px; height: 14px; }
+  .logout-btn:hover { background: var(--accent-mid); color: var(--accent); }
+
+  .content { margin-left: var(--sidebar-w); flex: 1; padding: 16px; }
+  .content-card { background: var(--surface); border-radius: 14px; padding: 28px 32px; min-height: calc(100vh - 32px); animation: fadeUp 0.35s ease both; animation-delay: 0.05s; }
+
+  .page-header { margin-bottom: 20px; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb span { font-size: 11px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .page-header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .status-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .status-tag .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .status-done { background: var(--accent-light); color: #2d6a4f; }
+  .status-done .dot { background: #2d6a4f; }
+  .status-processing { background: #fef3e8; color: #c2670a; }
+  .status-processing .dot { background: #c2670a; animation: pulse 1.5s infinite; }
+
+  .task-info-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; }
+  .info-item { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .info-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-val { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .info-divider { width: 1px; height: 28px; background: var(--border); }
+  .file-link { font-size: 12px; color: var(--text-secondary); cursor: pointer; padding: 2px 8px; background: #fff; border: 1px solid var(--border); border-radius: 5px; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
+  .file-link:hover { background: var(--accent-mid); border-color: #b8ccc5; color: var(--accent); }
+
+  .btn-view-result { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--accent); background: var(--accent-mid); border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap; text-decoration: none; }
+  .btn-view-result:hover { background: var(--accent); color: #fff; }
+  .btn-view-result svg { width: 13px; height: 13px; }
+
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 8px rgba(47,79,79,0.25); text-decoration: none; }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-primary svg { width: 13px; height: 13px; }
+
+  /* 结果区块 */
+  .result-section { margin-top: 8px; }
+  .result-section-title { font-size: 11.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .result-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .result-file-card { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .result-file-left { display: flex; align-items: center; gap: 14px; }
+  .result-file-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-mid); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  .result-file-icon svg { width: 20px; height: 20px; }
+  .result-file-name { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+  .result-file-meta { font-size: 12px; color: var(--text-muted); }
+  .result-file-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-mid); border: none; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .btn-secondary:hover { background: #c9dbd4; }
+  .btn-secondary svg { width: 13px; height: 13px; }
+  .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+  .generating-card { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; color: var(--text-secondary); font-size: 13.5px; }
+  .spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="sidebar-logo" href="index.html">
+    <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <span class="logo-name">Scholai</span><span class="logo-tag">Beta</span>
+  </a>
+  <div class="nav-section">
+    <div class="nav-label">功能</div>
+    <a class="nav-item" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>功能总览</a>
+    <a class="nav-item" href="grading-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>智能批改</a>
+    <a class="nav-item active" href="cleaning-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>题目清洗</a>
+    <a class="nav-item" href="quiz-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>智能出题</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>题库管理<span class="nav-soon">即将上线</span></a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>学情分析<span class="nav-soon">即将上线</span></a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">刘</div><span class="user-name">刘老师</span>
+      <button class="logout-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </div>
+</aside>
+
+<main class="content">
+  <div class="content-card">
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">首页</a><span>›</span>
+        <a href="cleaning-list.html">题目清洗</a><span>›</span>
+        <span style="color:var(--text-primary)">2604-W13 学生作业</span>
+      </div>
+      <div class="header-row">
+        <div class="header-left">
+          <h1>2604-W13 学生作业</h1>
+          <span class="status-tag status-done"><span class="dot"></span>已完成</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-secondary" id="btn-reclean" onclick="reclean()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            重新清洗
+          </button>
+          <a class="btn-primary" href="quiz-create.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            基于此出题
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-info-bar">
+      <div class="info-item">
+        <span class="info-lbl">来源文件</span>
+        <span class="info-val" style="display:flex;gap:6px;flex-wrap:wrap">
+          <!-- 开发注意：href 替换为对应源文件的实际 URL，target="_blank" 新标签页打开 -->
+          <a class="file-link" href="javascript:void(0)" target="_blank">🖼 作业-1.jpg</a>
+          <a class="file-link" href="javascript:void(0)" target="_blank">🖼 作业-2.jpg</a>
+          <a class="file-link" href="javascript:void(0)" target="_blank">🖼 作业-3.jpg</a>
+        </span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-item">
+        <span class="info-lbl">清洗题目</span>
+        <span class="info-val">10 题</span>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-item">
+        <span class="info-lbl">创建时间</span>
+        <span class="info-val">06-09</span>
+      </div>
+      <div style="margin-left:auto;flex-shrink:0">
+        <!-- 开发注意：href 替换为清洗结果 MD 文件的实际 URL，target="_blank" 新标签页打开 -->
+        <a class="btn-view-result" href="javascript:void(0)" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          查看清洗结果
+        </a>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-title">清洗结果文件</div>
+      <div class="result-file-card">
+        <div class="result-file-left">
+          <div class="result-file-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div>
+            <div class="result-file-name">2604-W13 学生作业-清洗结果.md</div>
+            <!-- 开发注意：题目数和文件大小由后端返回 -->
+            <div class="result-file-meta">10 题 · 生成于 06-09 14:37</div>
+          </div>
+        </div>
+        <div class="result-file-actions">
+          <!-- 开发注意：href 替换为清洗结果 MD 文件的实际 URL -->
+          <a class="btn-view-result" href="javascript:void(0)" target="_blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            查看
+          </a>
+          <!-- 开发注意：href 替换为清洗结果 MD 文件的下载 URL，download 属性触发下载 -->
+          <a class="btn-view-result" href="javascript:void(0)" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下载
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+let cleanCount = 10;
+
+function reclean() {
+  const btn = document.getElementById('btn-reclean');
+  btn.disabled = true;
+
+  const section = document.querySelector('.result-section');
+  section.innerHTML = `
+    <div class="result-section-title">清洗结果文件</div>
+    <div class="generating-card">
+      <div class="spin"></div>
+      <span>正在重新清洗，请稍候…</span>
+    </div>`;
+
+  setTimeout(() => {
+    const now = new Date();
+    const timeStr = (now.getMonth()+1).toString().padStart(2,'0') + '-' +
+                    now.getDate().toString().padStart(2,'0') + ' ' +
+                    now.getHours().toString().padStart(2,'0') + ':' +
+                    now.getMinutes().toString().padStart(2,'0');
+    cleanCount = Math.floor(Math.random() * 3) + 9; // 9-11 题，模拟略有变化
+
+    // 更新信息栏题目数
+    const countEl = document.querySelector('.info-val');
+    if (countEl && countEl.textContent.includes('题')) countEl.textContent = cleanCount + ' 题';
+
+    section.innerHTML = `
+      <div class="result-section-title">清洗结果文件</div>
+      <div class="result-file-card">
+        <div class="result-file-left">
+          <div class="result-file-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div>
+            <div class="result-file-name">2604-W13 学生作业-清洗结果.md</div>
+            <div class="result-file-meta">${cleanCount} 题 · 生成于 ${timeStr}</div>
+          </div>
+        </div>
+        <div class="result-file-actions">
+          <a class="btn-view-result" href="javascript:void(0)" target="_blank">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            查看
+          </a>
+          <a class="btn-view-result" href="javascript:void(0)" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下载
+          </a>
+        </div>
+      </div>`;
+
+    btn.disabled = false;
+  }, 2000);
+}
+</script>
+
+</body>
+</html>

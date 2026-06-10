@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholai · 新建出题任务</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sidebar-w: 220px; --bg: #f2f4f2; --surface: #ffffff;
+    --border: #e4e8e4; --text-primary: #111827;
+    --text-secondary: #6b7280; --text-muted: #9ca3af;
+    --accent: #2F4F4F; --accent-dark: #03301C;
+    --accent-light: #e8f5ee; --accent-mid: #dce8e2;
+    --sidebar-text: #6b8f7a;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--bg); min-height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 20px 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; text-decoration: none; }
+  .logo-mark { width: 26px; height: 26px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 13px; height: 13px; color: #fff; }
+  .logo-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .logo-tag { font-size: 10px; font-weight: 600; background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 4px; }
+  .nav-section { padding: 0 10px; }
+  .nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; font-size: 13.5px; color: var(--sidebar-text); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: var(--border); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-mid); color: var(--accent); font-weight: 600; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .nav-item .nav-soon { margin-left: auto; font-size: 9px; font-weight: 600; background: #f3f4f6; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; }
+  .sidebar-footer { margin-top: auto; padding: 14px 10px 4px; border-top: 1px solid var(--border); }
+  .user-row { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; transition: background 0.15s; }
+  .user-row:hover { background: var(--border); }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .user-name { font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .logout-btn { width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .logout-btn svg { width: 14px; height: 14px; }
+  .logout-btn:hover { background: var(--accent-mid); color: var(--accent); }
+
+  .content { margin-left: var(--sidebar-w); flex: 1; padding: 16px; }
+  .content-card { background: var(--surface); border-radius: 14px; padding: 28px 32px; min-height: calc(100vh - 32px); animation: fadeUp 0.35s ease both; animation-delay: 0.05s; }
+
+  .page-header { margin-bottom: 24px; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb span { font-size: 11px; }
+  .page-header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* tab bar */
+  .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 28px; }
+  .tab-btn { padding: 9px 20px; font-size: 13.5px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab-btn:hover { color: var(--text-secondary); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .form-body { max-width: 580px; }
+  .form-field { margin-bottom: 22px; }
+  .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+  .form-field input[type=text] { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.15s; font-family: inherit; background: #fff; }
+  .form-field input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,79,79,0.08); }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 36px 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .upload-zone:hover { border-color: var(--accent); background: #f7faf8; }
+  .upload-zone-icon { width: 44px; height: 44px; background: var(--accent-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #2d6a4f; }
+  .upload-zone-icon svg { width: 22px; height: 22px; }
+  .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .upload-zone p { font-size: 12.5px; color: var(--text-muted); }
+  .upload-zone p em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+  .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.6; }
+
+  .form-footer { display: flex; gap: 10px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: 9px; font-size: 13.5px; font-weight: 600; color: #fff; background: var(--accent); border: none; cursor: pointer; transition: all 0.15s; text-decoration: none; box-shadow: 0 2px 8px rgba(47,79,79,0.25); }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-ghost { padding: 10px 20px; border-radius: 9px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); background: transparent; border: 1.5px solid var(--border); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .btn-ghost:hover { background: var(--bg); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="sidebar-logo" href="index.html">
+    <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <span class="logo-name">Scholai</span><span class="logo-tag">Beta</span>
+  </a>
+  <div class="nav-section">
+    <div class="nav-label">功能</div>
+    <a class="nav-item" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>功能总览</a>
+    <a class="nav-item" href="grading-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>智能批改</a>
+    <a class="nav-item" href="cleaning-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>题目清洗</a>
+    <a class="nav-item active" href="quiz-list.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>智能出题</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>题库管理<span class="nav-soon">即将上线</span></a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>学情分析<span class="nav-soon">即将上线</span></a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">刘</div><span class="user-name">刘老师</span>
+      <button class="logout-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </div>
+</aside>
+
+<main class="content">
+  <div class="content-card">
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">首页</a><span>›</span>
+        <a href="quiz-list.html">智能出题</a><span>›</span>
+        <span style="color:var(--text-primary)">新建出题任务</span>
+      </div>
+      <h1>新建出题任务</h1>
+      <p id="pageDesc">上传含题目和答案解析的习题集，AI 将分析出题规律并生成同类新题</p>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(0)">原题出题</button>
+      <button class="tab-btn" onclick="switchTab(1)">错题出题</button>
+    </div>
+
+    <div class="form-body">
+      <div class="form-field">
+        <label>任务名称</label>
+        <input type="text" id="taskNameInput" placeholder="如：2604-W13 原题出题" />
+      </div>
+
+      <div class="form-field">
+        <label id="uploadLabel">上传习题集文件</label>
+        <div class="upload-zone">
+          <div class="upload-zone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>点击上传或拖拽文件</h3>
+          <p id="uploadTypesHint">支持 <em>JPG / PNG / PDF</em>，可多选</p>
+        </div>
+        <p class="form-hint" id="uploadHint">上传含有题目和答案解析的习题集，AI 会分析每道题的出题思路，生成结构相同、数值不同的同类新题，并附完整解析。</p>
+      </div>
+
+      <div class="form-footer">
+        <a class="btn-ghost" href="quiz-list.html">取消</a>
+        <a class="btn-primary" href="quiz-detail.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          创建并开始出题
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const tabs = [
+    {
+      desc: '上传含题目和答案解析的习题集，AI 将分析出题规律并生成同类新题',
+      label: '上传习题集文件',
+      typesHint: '支持 <em>JPG / PNG / PDF</em>，可多选',
+      hint: '上传含有题目和答案解析的习题集，AI 会分析每道题的出题思路，生成结构相同、数值不同的同类新题，并附完整解析。',
+      placeholder: '如：2604-W13 原题出题',
+    },
+    {
+      desc: '上传批改结果文件，AI 将识别错题并生成针对同类知识点的练习题',
+      label: '上传批改结果文件',
+      typesHint: '支持 <em>JPG / PNG / PDF / MD</em>，可多选',
+      hint: 'AI 会先识别所有错题，分析出错知识点，再针对薄弱知识点出专项练习题；若无错题则直接提示。',
+      placeholder: '如：张小明 - 错题练习',
+    }
+  ];
+
+  const tabBtns = document.querySelectorAll('.tab-btn');
+
+  function switchTab(idx) {
+    tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+    const t = tabs[idx];
+    document.getElementById('pageDesc').textContent = t.desc;
+    document.getElementById('uploadLabel').textContent = t.label;
+    document.getElementById('uploadTypesHint').innerHTML = t.typesHint;
+    document.getElementById('uploadHint').textContent = t.hint;
+    document.getElementById('taskNameInput').placeholder = t.placeholder;
+  }
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('type') === 'wrong') switchTab(1);
+</script>
+
+</body>
+</html>

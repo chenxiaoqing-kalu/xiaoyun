@@ -284,6 +284,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       智能批改
     </a>
+    <a class="nav-item" href="cleaning-list.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      题目清洗
+    </a>
+    <a class="nav-item" href="quiz-list.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      智能出题
+    </a>
     <a class="nav-item disabled" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
       题库管理
@@ -337,9 +345,51 @@
             <span class="stat-val">17</span>
             <span class="stat-lbl">已批改学生</span>
           </div>
+        </div>
+        <div class="card-enter">
+          进入功能
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- 题目清洗 -->
+      <a class="feature-card active" href="cleaning-list.html" style="animation-delay:0.15s">
+        <div class="card-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="card-title">题目清洗</div>
+        <div class="card-desc">上传含学生作答的文件，AI 自动识别并提取干净的题目列表，去除所有作答内容，输出结构化题目。</div>
+        <div class="card-stats">
           <div class="stat-item">
-            <span class="stat-val">2</span>
-            <span class="stat-lbl">进行中</span>
+            <span class="stat-val">3</span>
+            <span class="stat-lbl">清洗任务</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val">28</span>
+            <span class="stat-lbl">已清洗题目</span>
+          </div>
+        </div>
+        <div class="card-enter">
+          进入功能
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- 出题 -->
+      <a class="feature-card active" href="quiz-list.html" style="animation-delay:0.2s">
+        <div class="card-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="card-title">智能出题</div>
+        <div class="card-desc">基于已有题集出同类新题，或针对批改结果中的错题生成针对性练习，帮助学生巩固薄弱知识点。</div>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-val">5</span>
+            <span class="stat-lbl">出题任务</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val">42</span>
+            <span class="stat-lbl">已生成题目</span>
           </div>
         </div>
         <div class="card-enter">
@@ -349,8 +399,8 @@
       </a>
 
       <!-- 题库管理 -->
-      <div class="feature-card disabled" style="animation-delay:0.15s">
-        <div class="card-icon blue">
+      <div class="feature-card disabled" style="animation-delay:0.25s">
+        <div class="card-icon orange">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
         </div>
         <div class="card-title">题库管理</div>
@@ -362,8 +412,8 @@
       </div>
 
       <!-- 学情分析 -->
-      <div class="feature-card disabled" style="animation-delay:0.2s">
-        <div class="card-icon orange">
+      <div class="feature-card disabled" style="animation-delay:0.3s">
+        <div class="card-icon orange" style="background:#fef3e8;color:#c2670a">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
         <div class="card-title">学情分析</div>
